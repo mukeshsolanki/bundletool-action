@@ -1,4 +1,5 @@
 # BundleTool Action
+![Thumbnail](thumbnails.jpeg)
 
 This action will help you convert your aab to signed apk file.
 
