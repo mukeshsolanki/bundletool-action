@@ -1,4 +1,7 @@
 # BundleTool Action
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d78e880d85a947b1826b9bfde90df6bc)](https://app.codacy.com/gh/mukeshsolanki/bundletool-action?utm_source=github.com&utm_medium=referral&utm_content=mukeshsolanki/bundletool-action&utm_campaign=Badge_Grade_Settings)
+
 ![Thumbnail](thumbnails.jpeg)
 
 This action will help you convert your aab to signed apk file.
