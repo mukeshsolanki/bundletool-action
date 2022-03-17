@@ -1,4 +1,5 @@
 # BundleTool Action
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/d78e880d85a947b1826b9bfde90df6bc)](https://app.codacy.com/gh/mukeshsolanki/bundletool-action?utm_source=github.com&utm_medium=referral&utm_content=mukeshsolanki/bundletool-action&utm_campaign=Badge_Grade_Settings)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/667085e10b6740fda8942b1a11e5b866)](https://www.codacy.com/gh/mukeshsolanki/bundletool-action/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mukeshsolanki/bundletool-action&amp;utm_campaign=Badge_Grade)
 [![tag badge](https://img.shields.io/github/v/tag/mukeshsolanki/bundletool-action)](https://github.com/mukeshsolanki/bundletool-action/tags)
 [![license badge](https://img.shields.io/github/license/mukeshsolanki/bundletool-action)](./LICENSE)
