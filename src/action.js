@@ -2,10 +2,9 @@ const core = require("@actions/core");
 const exec = require("@actions/exec");
 const tc = require("@actions/tool-cache");
 const io = require("@actions/io");
+const httpm = require("@actions/http-client");
 const fs = require("fs");
 const path = require("path");
-
-const BUNDLETOOL_URL = "https://github.com/google/bundletool/releases/download/1.9.0/bundletool-all-1.9.0.jar";
 
 async function run() {
     try {
@@ -20,6 +19,7 @@ async function run() {
         const KEYSTORE_PASSWORD = core.getInput("keystorePassword");
         const KEYSTORE_ALIAS = core.getInput("keystoreAlias");
         const KEY_PASSWORD = core.getInput("keyPassword");
+        const BUNDLETOOL_VERSION = core.getInput("bundletoolVersion");
 
         const bundleToolPath = `${process.env.HOME}/bundletool`;
         const bundleToolFile = `${bundleToolPath}/bundletool.jar`;
@@ -28,7 +28,11 @@ async function run() {
 
         core.info(`${bundleToolPath} directory created`);
 
-        const downloadPath = await tc.downloadTool(BUNDLETOOL_URL);
+        const bundletool = await getBundletoolInfo(BUNDLETOOL_VERSION);
+
+        core.info(`${bundletool.tag_name} version of bundletool will be used`);
+
+        const downloadPath = await tc.downloadTool(bundletool.url);
 
         await io.mv(downloadPath, bundleToolFile);
 
@@ -65,6 +69,27 @@ async function run() {
     } catch (error) {
         core.setFailed(error.message);
     }
+}
+
+async function getBundletoolInfo(tag) {
+    const version = (tag && tag !== 'latest') ? `tags/${tag}` : 'latest';
+    const url = `https://api.github.com/repos/google/bundletool/releases/${version}`;
+    
+    const http = new httpm.HttpClient("bundletool-action");
+    const response = await http.getJson(url);
+
+    if (response.statusCode !== 200) {
+        if (response.statusCode === 404) {
+            throw new Error(`Bundletool version ${tag} not found`);
+        }
+        throw new Error(`Unexpected HTTP response from ${url}: ${response.statusCode}`);
+    }
+
+    const json = response.result;
+    return {
+        tag_name: json.tag_name,
+        url: json.assets[0].browser_download_url,
+    };
 }
 
 run();
