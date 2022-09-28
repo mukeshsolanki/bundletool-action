@@ -6,6 +6,27 @@ const httpm = require("@actions/http-client");
 const fs = require("fs");
 const path = require("path");
 
+async function getBundletoolInfo(tag) {
+    const version = (tag && tag !== "latest") ? `tags/${tag}` : "latest";
+    const url = `https://api.github.com/repos/google/bundletool/releases/${version}`;
+    
+    const http = new httpm.HttpClient("bundletool-action");
+    const response = await http.getJson(url);
+
+    if (response.statusCode !== 200) {
+        if (response.statusCode === 404) {
+            throw new Error(`Bundletool version ${tag} not found`);
+        }
+        throw new Error(`Unexpected HTTP response from ${url}: ${response.statusCode}`);
+    }
+
+    const json = response.result;
+    return {
+        tagName: json.tag_name,
+        downloadUrl: json.assets[0].browser_download_url,
+    };
+}
+
 async function run() {
     try {
         if (process.platform !== "darwin" && process.platform !== "linux") {
@@ -28,11 +49,11 @@ async function run() {
 
         core.info(`${bundleToolPath} directory created`);
 
-        const bundletool = await getBundletoolInfo(BUNDLETOOL_VERSION);
+        const { tagName, downloadUrl } = await getBundletoolInfo(BUNDLETOOL_VERSION);
 
-        core.info(`${bundletool.tag_name} version of bundletool will be used`);
+        core.info(`${tagName} version of bundletool will be used`);
 
-        const downloadPath = await tc.downloadTool(bundletool.url);
+        const downloadPath = await tc.downloadTool(downloadUrl);
 
         await io.mv(downloadPath, bundleToolFile);
 
@@ -69,27 +90,6 @@ async function run() {
     } catch (error) {
         core.setFailed(error.message);
     }
-}
-
-async function getBundletoolInfo(tag) {
-    const version = (tag && tag !== 'latest') ? `tags/${tag}` : 'latest';
-    const url = `https://api.github.com/repos/google/bundletool/releases/${version}`;
-    
-    const http = new httpm.HttpClient("bundletool-action");
-    const response = await http.getJson(url);
-
-    if (response.statusCode !== 200) {
-        if (response.statusCode === 404) {
-            throw new Error(`Bundletool version ${tag} not found`);
-        }
-        throw new Error(`Unexpected HTTP response from ${url}: ${response.statusCode}`);
-    }
-
-    const json = response.result;
-    return {
-        tag_name: json.tag_name,
-        url: json.assets[0].browser_download_url,
-    };
 }
 
 run();
