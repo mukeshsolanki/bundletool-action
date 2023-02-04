@@ -36,6 +36,10 @@ Then copy the contents of the `.txt` file to your GH secrets
 
 **Required:** The private key password for your signing keystore
 
+### `bundletoolVersion`
+
+**Optional:** The version of bundletool to use. Defaults to `latest`
+
 ## Outputs
 Output variables are set both locally and in environment variables.
 
@@ -59,6 +63,7 @@ steps:
       keystorePassword: ${{ secrets.PASSWORD }}
       keystoreAlias: ${{ secrets.ALIAS }}
       keyPassword: ${{ secrets.PASSWORD }}
+      bundletoolVersion: '1.9.0'
 
   - uses: actions/upload-artifact@v3
     with:
