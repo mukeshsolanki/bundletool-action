@@ -9,7 +9,7 @@ const path = require("path");
 async function getBundletoolInfo(tag) {
     const version = (tag && tag !== "latest") ? `tags/${tag}` : "latest";
     const url = `https://api.github.com/repos/google/bundletool/releases/${version}`;
-    
+
     const http = new httpm.HttpClient("bundletool-action");
     const response = await http.getJson(url);
 
@@ -27,14 +27,17 @@ async function getBundletoolInfo(tag) {
     };
 }
 
+function setOutput(name, value) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `${name}=${value}\n`);
+}
+
 async function run() {
     try {
         if (process.platform !== "darwin" && process.platform !== "linux") {
-            throw new Error(
-                "Unsupported virtual machine: please use either macos or ubuntu VM."
-            );
+            throw new Error("Unsupported virtual machine: please use either macos or ubuntu VM.");
         }
-        // parameters passed to the plugin
+
+        // Parameters passed to the action
         const AAB_FILE = core.getInput("aabFile");
         const BASE64_KEYSTORE = core.getInput("base64Keystore");
         const KEYSTORE_PASSWORD = core.getInput("keystorePassword");
@@ -46,45 +49,36 @@ async function run() {
         const bundleToolFile = `${bundleToolPath}/bundletool.jar`;
 
         await io.mkdirP(bundleToolPath);
-
         core.info(`${bundleToolPath} directory created`);
 
         const { tagName, downloadUrl } = await getBundletoolInfo(BUNDLETOOL_VERSION);
-
         core.info(`${tagName} version of bundletool will be used`);
 
         const downloadPath = await tc.downloadTool(downloadUrl);
-
         await io.mv(downloadPath, bundleToolFile);
-
         core.info(`${bundleToolFile} moved to directory`);
 
         core.addPath(bundleToolPath);
-
         core.info(`${bundleToolPath} added to path`);
 
         await exec.exec(`chmod +x ${bundleToolFile}`);
-
         await io.which("bundletool.jar", true);
 
         const signingKey = "signingKey.jks";
 
-        fs.writeFileSync(signingKey, BASE64_KEYSTORE, "base64", function(err) {
-            if (err) {
-                core.info(`Please check the key ${err}`);
-            } else {
-                core.info("KeyStore File Created");
-            }
-        });
+        fs.writeFileSync(signingKey, BASE64_KEYSTORE, "base64");
+        core.info("KeyStore File Created");
 
-        var extension = path.extname(AAB_FILE);
-        var filename = path.basename(AAB_FILE, extension);
+        const extension = path.extname(AAB_FILE);
+        const filename = path.basename(AAB_FILE, extension);
 
         await exec.exec(`java -jar ${bundleToolFile} build-apks --bundle=${AAB_FILE} --output=${filename}.apks --ks=${signingKey} --ks-pass=pass:${KEYSTORE_PASSWORD} --ks-key-alias=${KEYSTORE_ALIAS} --key-pass=pass:${KEY_PASSWORD} --mode=universal`);
         await exec.exec(`mv ${filename}.apks ${filename}.zip`);
         await exec.exec(`unzip ${filename}.zip`);
         await exec.exec(`mv universal.apk ${filename}.apk`);
-        core.setOutput("apkPath", `${filename}.apk`);
+
+        // ✅ Set output using GITHUB_OUTPUT
+        setOutput("apkPath", `${filename}.apk`);
 
         await exec.exec(`rm -rf ${signingKey}`);
     } catch (error) {
