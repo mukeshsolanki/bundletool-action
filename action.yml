@@ -1,5 +1,5 @@
 name: 'BundleTool Action'
-description: 'This action will help you convert your aab to signed apk file.'
+description: 'This GitHub Action converts Android App Bundles (AAB) into signed APK files using bundletool.'
 author: 'Mukesh Solanki'
 branding:
   icon: 'check-circle'  
